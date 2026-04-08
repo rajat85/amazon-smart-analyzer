@@ -4,7 +4,7 @@
   'use strict';
 
   // Configuration
-  const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+  const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
   const API_TIMEOUT = 30000; // 30 seconds
 
   // State
@@ -127,13 +127,13 @@
         }
       }
 
-      // Extract top review snippets (first 3-5 reviews)
+      // Extract top review snippets (first 2 reviews only)
       const reviewElements = document.querySelectorAll('[data-hook="review-body"] span');
-      for (let i = 0; i < Math.min(5, reviewElements.length); i++) {
+      for (let i = 0; i < Math.min(2, reviewElements.length); i++) {
         const reviewText = reviewElements[i].textContent.trim();
         if (reviewText.length > 20) { // Skip very short snippets
-          // Take first 200 characters
-          const snippet = reviewText.substring(0, 200);
+          // Take first 80 characters
+          const snippet = reviewText.substring(0, 80);
           data.reviews.push(snippet);
         }
       }
@@ -323,14 +323,10 @@
         parts: [{
           text: prompt
         }]
-      }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1024
-      }
+      }]
     };
 
-    const url = `${GEMINI_API_ENDPOINT}?key=${apiKey}`;
+    const url = GEMINI_API_ENDPOINT;
 
     try {
       const controller = new AbortController();
@@ -339,7 +335,8 @@
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-goog-api-key': apiKey
         },
         body: JSON.stringify(requestBody),
         signal: controller.signal
@@ -364,41 +361,17 @@
 
   // Build prompt for Gemini
   function buildPrompt(data) {
-    let prompt = `Analyze this Amazon product and provide a buying recommendation:\n\n`;
-    prompt += `Product: ${data.title}\n`;
-    prompt += `Price: ${data.currency}${data.price}\n`;
+    let prompt = `Product: ${data.title}\nPrice: ${data.currency}${data.price}\n`;
 
     if (data.rating) {
-      prompt += `Rating: ${data.rating}/5`;
-      if (data.reviewCount) {
-        prompt += ` (${data.reviewCount} reviews)`;
-      }
-      prompt += `\n`;
-    }
-
-    if (data.category) {
-      prompt += `Category: ${data.category}\n`;
-    }
-
-    if (data.availability === 'unavailable') {
-      prompt += `Note: Product is currently unavailable.\n`;
+      prompt += `Rating: ${data.rating}/5 (${data.reviewCount || 0} reviews)\n`;
     }
 
     if (data.reviews && data.reviews.length > 0) {
-      prompt += `\nTop Customer Reviews:\n`;
-      data.reviews.forEach((review, index) => {
-        prompt += `- ${review}\n`;
-      });
+      prompt += `Reviews: ${data.reviews.join(' | ')}\n`;
     }
 
-    prompt += `\nProvide your analysis in this EXACT JSON format:\n`;
-    prompt += `{\n`;
-    prompt += `  "verdict": "Good Deal" | "Fair" | "Overpriced",\n`;
-    prompt += `  "pros": ["point1", "point2", "point3"],\n`;
-    prompt += `  "cons": ["point1", "point2", "point3"],\n`;
-    prompt += `  "priceAssessment": "Brief paragraph about whether the price is reasonable for this product category, brand, and specifications."\n`;
-    prompt += `}\n\n`;
-    prompt += `Be concise, honest, and focus on value for money. Ensure your response is valid JSON.`;
+    prompt += `\nReturn JSON: {"verdict":"Good Deal|Fair|Overpriced","pros":["p1","p2"],"cons":["c1","c2"],"priceAssessment":"1 sentence"}`;
 
     return prompt;
   }
