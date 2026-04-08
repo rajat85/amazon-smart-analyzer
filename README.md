@@ -51,6 +51,8 @@ An intelligent Chrome extension that provides AI-powered analysis of Amazon prod
 
 ## Usage
 
+**[📺 Watch Demo Video](https://www.youtube.com/watch?v=pYl1JyWr7dc)** - See the extension in action!
+
 1. Navigate to any Amazon product page (e.g., amazon.com, amazon.co.uk, amazon.in)
 2. Look for the **"🔍 Analyze with AI"** button near the product price
 3. Click the button to start analysis
@@ -66,6 +68,48 @@ An intelligent Chrome extension that provides AI-powered analysis of Amazon prod
 ![Amazon Smart Analyzer in Action](screenshots/usage-example.png)
 
 The screenshot above shows the extension analyzing a Dell 15 laptop on Amazon, providing a "Good Deal" verdict with detailed pros, cons, and price assessment.
+
+## Recording a Demo Video
+
+To create a demo video showing the extension in action:
+
+### Option 1: Quick Manual Recording (Recommended - 5 minutes)
+
+1. **Start macOS Screen Recording**
+   - Press `Cmd + Shift + 5`
+   - Click "Record Selected Portion" or "Record Entire Screen"
+   - Click "Options" → Enable "Show Mouse Clicks"
+   - Click **Record** button
+
+2. **Demo the Extension**
+   - Open your browser where the extension is installed
+   - Navigate to an Amazon product (e.g., https://www.amazon.com/Dell-DC15250-15-6-inch-Display-Processor/dp/B0DM5V3WVY)
+   - Wait for page to load (3-5 seconds)
+   - Scroll to show the "🔍 Analyze with AI" button
+   - Click the button
+   - Wait for analysis (~15-30 seconds)
+   - Scroll through results: verdict badge, pros, cons, price assessment
+   - Pause for 2 seconds so viewers can see the results
+
+3. **Stop Recording**
+   - Click the Stop button in the menu bar
+   - Video saves to Desktop as `Screen Recording YYYY-MM-DD at...mov`
+
+4. **Upload Video**
+   - **YouTube (Recommended)**: Upload as "Unlisted", title: "Amazon Smart Analyzer Demo"
+   - **Google Drive**: Upload and set sharing to "Anyone with the link can view"
+
+### Option 2: Automated Recording with Playwright
+
+For automated demo recording, see [RECORDING-INSTRUCTIONS.md](RECORDING-INSTRUCTIONS.md). Note that automated recording requires the extension to be pre-installed and configured in the browser being automated.
+
+**Tips for a Good Demo:**
+- ✅ Show mouse clicks (enable in recording options)
+- ✅ Wait for complete results - don't cut early
+- ✅ Keep it short (30-60 seconds)
+- ✅ Show each section clearly
+- ❌ Don't rush through the steps
+- ❌ Don't skip the analysis wait time (it shows the AI working)
 
 ## Supported Amazon Domains
 
