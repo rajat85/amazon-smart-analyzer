@@ -98,6 +98,15 @@
         data.currency = currencyMatch ? currencyMatch[0] : '$';
       }
 
+      // Check if product is unavailable
+      const availabilityElement = document.querySelector('#availability span');
+      if (availabilityElement) {
+        const availabilityText = availabilityElement.textContent.toLowerCase();
+        if (availabilityText.includes('unavailable') || availabilityText.includes('out of stock')) {
+          data.availability = 'unavailable';
+        }
+      }
+
       // Extract rating
       const ratingElement = document.querySelector('[data-hook="rating-out-of-text"], .a-icon-alt');
       if (ratingElement) {
@@ -273,11 +282,28 @@
     button.innerHTML = '🔍 Analyze with AI';
   }
 
-  // Show error message (placeholder - full implementation in next task)
+  // Show error message with better formatting
   function showError(message) {
     const resultsContainer = document.getElementById('ai-analyzer-results');
+
+    let actionHtml = '';
+
+    // Add action button based on error type
+    if (message.includes('API key')) {
+      actionHtml = '<button class="ai-error-action" onclick="chrome.runtime.openOptionsPage ? chrome.runtime.openOptionsPage() : window.open(chrome.runtime.getURL(\'popup.html\'))">Open Settings</button>';
+    } else if (message.includes('try again')) {
+      actionHtml = '<button class="ai-error-action" onclick="document.getElementById(\'ai-analyzer-button\').click()">Retry Analysis</button>';
+    }
+
     resultsContainer.style.display = 'block';
-    resultsContainer.innerHTML = `<div class="ai-error">${escapeHtml(message)}</div>`;
+    resultsContainer.innerHTML = `
+      <div class="ai-error">
+        <strong>⚠️ Error</strong>
+        <p>${escapeHtml(message)}</p>
+        ${actionHtml}
+      </div>
+    `;
+
     console.error('[Amazon Smart Analyzer]', message);
   }
 
@@ -352,6 +378,10 @@
 
     if (data.category) {
       prompt += `Category: ${data.category}\n`;
+    }
+
+    if (data.availability === 'unavailable') {
+      prompt += `Note: Product is currently unavailable.\n`;
     }
 
     if (data.reviews && data.reviews.length > 0) {
