@@ -160,9 +160,141 @@
     return { valid: true };
   }
 
-  // Placeholder for button injection (implemented in next task)
+  // Inject "Analyze with AI" button into Amazon page
   function injectAnalyzeButton() {
-    console.log('[Amazon Smart Analyzer] Would inject button here');
+    // Check if button already exists
+    if (document.getElementById('ai-analyzer-button')) {
+      return;
+    }
+
+    // Create button
+    const button = document.createElement('button');
+    button.id = 'ai-analyzer-button';
+    button.className = 'ai-analyzer-button';
+    button.innerHTML = '🔍 Analyze with AI';
+
+    // Create results container (hidden initially)
+    const resultsContainer = document.createElement('div');
+    resultsContainer.id = 'ai-analyzer-results';
+    resultsContainer.className = 'ai-analyzer-results';
+    resultsContainer.style.display = 'none';
+
+    // Find injection point (near product title)
+    const titleElement = document.querySelector('#productTitle');
+    const priceElement = document.querySelector('#corePrice_feature_div, #priceblock_feature_div');
+
+    let insertionPoint = null;
+
+    if (priceElement) {
+      // Insert after price element
+      insertionPoint = priceElement;
+    } else if (titleElement) {
+      // Fallback: insert after title
+      insertionPoint = titleElement.parentElement;
+    }
+
+    if (insertionPoint) {
+      // Create wrapper div for button and results
+      const wrapper = document.createElement('div');
+      wrapper.id = 'ai-analyzer-wrapper';
+      wrapper.style.marginTop = '15px';
+      wrapper.style.marginBottom = '15px';
+
+      wrapper.appendChild(button);
+      wrapper.appendChild(resultsContainer);
+
+      // Insert after the insertion point
+      insertionPoint.insertAdjacentElement('afterend', wrapper);
+
+      // Attach click event
+      button.addEventListener('click', handleAnalyzeClick);
+
+      console.log('[Amazon Smart Analyzer] Button injected successfully');
+    } else {
+      console.error('[Amazon Smart Analyzer] Could not find insertion point for button');
+    }
+  }
+
+  // Handle analyze button click
+  async function handleAnalyzeClick(event) {
+    const button = event.target;
+    const resultsContainer = document.getElementById('ai-analyzer-results');
+
+    console.log('[Amazon Smart Analyzer] Analyze button clicked');
+
+    // Check if API key is configured
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+      showError('Please configure your Gemini API key in the extension settings.');
+      return;
+    }
+
+    // Disable button and show loading state
+    button.disabled = true;
+    button.innerHTML = '⏳ Analyzing...';
+
+    // Show loading message in results
+    resultsContainer.style.display = 'block';
+    resultsContainer.innerHTML = '<div class="ai-loading">Analyzing product... This may take 10-20 seconds.</div>';
+
+    // Scrape fresh data
+    productData = scrapeProductData();
+    const validation = validateProductData(productData);
+
+    if (!validation.valid) {
+      showError(validation.error);
+      resetButton(button);
+      return;
+    }
+
+    // Call Gemini API (implemented in next task)
+    try {
+      const analysis = await analyzeProduct(productData, apiKey);
+      displayResults(analysis);
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      resetButton(button);
+    }
+  }
+
+  // Get API key from storage
+  function getApiKey() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['geminiApiKey'], function(result) {
+        resolve(result.geminiApiKey || null);
+      });
+    });
+  }
+
+  // Reset button to initial state
+  function resetButton(button) {
+    button.disabled = false;
+    button.innerHTML = '🔍 Analyze with AI';
+  }
+
+  // Show error message (placeholder - full implementation in next task)
+  function showError(message) {
+    const resultsContainer = document.getElementById('ai-analyzer-results');
+    resultsContainer.style.display = 'block';
+    resultsContainer.innerHTML = `<div class="ai-error">${escapeHtml(message)}</div>`;
+    console.error('[Amazon Smart Analyzer]', message);
+  }
+
+  // Escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Placeholder functions (implemented in next tasks)
+  async function analyzeProduct(data, apiKey) {
+    throw new Error('API integration not yet implemented');
+  }
+
+  function displayResults(analysis) {
+    console.log('Display results:', analysis);
   }
 
   // Run initialization when DOM is ready
