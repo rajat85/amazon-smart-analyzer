@@ -430,8 +430,61 @@
     }
   }
 
+  // Display analysis results
   function displayResults(analysis) {
-    console.log('Display results:', analysis);
+    const resultsContainer = document.getElementById('ai-analyzer-results');
+
+    // Build HTML for results
+    const html = `
+      <div class="ai-results-header">
+        <h3>AI Analysis</h3>
+        <button class="ai-close-btn" onclick="document.getElementById('ai-analyzer-results').style.display='none'">×</button>
+      </div>
+
+      <div class="ai-verdict ${getVerdictClass(analysis.verdict)}">
+        ${escapeHtml(analysis.verdict)}
+      </div>
+
+      <div class="ai-section">
+        <h4>✓ Pros</h4>
+        <ul class="ai-pros-list">
+          ${analysis.pros.map(pro => `<li>${escapeHtml(pro)}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="ai-section">
+        <h4>✗ Cons</h4>
+        <ul class="ai-cons-list">
+          ${analysis.cons.map(con => `<li>${escapeHtml(con)}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="ai-section">
+        <h4>💰 Price Assessment</h4>
+        <p class="ai-price-assessment">${escapeHtml(analysis.priceAssessment)}</p>
+      </div>
+
+      <div class="ai-footer">
+        <small>Powered by Google Gemini AI</small>
+      </div>
+    `;
+
+    resultsContainer.innerHTML = html;
+    resultsContainer.style.display = 'block';
+
+    console.log('[Amazon Smart Analyzer] Results displayed');
+  }
+
+  // Get CSS class for verdict badge
+  function getVerdictClass(verdict) {
+    const verdictLower = verdict.toLowerCase();
+    if (verdictLower.includes('good')) {
+      return 'verdict-good';
+    } else if (verdictLower.includes('overpriced') || verdictLower.includes('expensive')) {
+      return 'verdict-bad';
+    } else {
+      return 'verdict-fair';
+    }
   }
 
   // Run initialization when DOM is ready
