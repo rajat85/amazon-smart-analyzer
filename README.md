@@ -61,6 +61,12 @@ An intelligent Chrome extension that provides AI-powered analysis of Amazon prod
    - **Cons**: What to watch out for
    - **Price Assessment**: Whether the price is reasonable
 
+### Example
+
+![Amazon Smart Analyzer in Action](screenshots/usage-example.png)
+
+The screenshot above shows the extension analyzing a Dell 15 laptop on Amazon, providing a "Good Deal" verdict with detailed pros, cons, and price assessment.
+
 ## Supported Amazon Domains
 
 - amazon.com (US)
