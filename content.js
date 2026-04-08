@@ -288,9 +288,146 @@
     return div.innerHTML;
   }
 
-  // Placeholder functions (implemented in next tasks)
+  // Analyze product using Gemini API
   async function analyzeProduct(data, apiKey) {
-    throw new Error('API integration not yet implemented');
+    const prompt = buildPrompt(data);
+
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024
+      }
+    };
+
+    const url = `${GEMINI_API_ENDPOINT}?key=${apiKey}`;
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        return handleApiError(response);
+      }
+
+      const result = await response.json();
+      return parseGeminiResponse(result);
+
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Analysis timed out. Please try again.');
+      }
+      throw new Error(`Network error: ${error.message}`);
+    }
+  }
+
+  // Build prompt for Gemini
+  function buildPrompt(data) {
+    let prompt = `Analyze this Amazon product and provide a buying recommendation:\n\n`;
+    prompt += `Product: ${data.title}\n`;
+    prompt += `Price: ${data.currency}${data.price}\n`;
+
+    if (data.rating) {
+      prompt += `Rating: ${data.rating}/5`;
+      if (data.reviewCount) {
+        prompt += ` (${data.reviewCount} reviews)`;
+      }
+      prompt += `\n`;
+    }
+
+    if (data.category) {
+      prompt += `Category: ${data.category}\n`;
+    }
+
+    if (data.reviews && data.reviews.length > 0) {
+      prompt += `\nTop Customer Reviews:\n`;
+      data.reviews.forEach((review, index) => {
+        prompt += `- ${review}\n`;
+      });
+    }
+
+    prompt += `\nProvide your analysis in this EXACT JSON format:\n`;
+    prompt += `{\n`;
+    prompt += `  "verdict": "Good Deal" | "Fair" | "Overpriced",\n`;
+    prompt += `  "pros": ["point1", "point2", "point3"],\n`;
+    prompt += `  "cons": ["point1", "point2", "point3"],\n`;
+    prompt += `  "priceAssessment": "Brief paragraph about whether the price is reasonable for this product category, brand, and specifications."\n`;
+    prompt += `}\n\n`;
+    prompt += `Be concise, honest, and focus on value for money. Ensure your response is valid JSON.`;
+
+    return prompt;
+  }
+
+  // Handle API error responses
+  function handleApiError(response) {
+    const status = response.status;
+
+    if (status === 401 || status === 403) {
+      throw new Error('Invalid API key. Please check your settings.');
+    } else if (status === 429) {
+      throw new Error('Too many requests. Please wait a minute and try again.');
+    } else if (status >= 500) {
+      throw new Error('Analysis service unavailable. Please try again later.');
+    } else {
+      throw new Error(`API error (${status}). Please try again.`);
+    }
+  }
+
+  // Parse Gemini response
+  function parseGeminiResponse(result) {
+    try {
+      // Extract text from Gemini response
+      const text = result.candidates[0].content.parts[0].text;
+
+      // Try to extract JSON from response (may have markdown formatting)
+      let jsonText = text;
+
+      // Remove markdown code blocks if present
+      const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) ||
+                       text.match(/```\s*([\s\S]*?)\s*```/) ||
+                       text.match(/\{[\s\S]*\}/);
+
+      if (jsonMatch) {
+        jsonText = jsonMatch[1] || jsonMatch[0];
+      }
+
+      // Parse JSON
+      const analysis = JSON.parse(jsonText);
+
+      // Validate structure
+      if (!analysis.verdict || !analysis.pros || !analysis.cons || !analysis.priceAssessment) {
+        throw new Error('Invalid response structure');
+      }
+
+      // Ensure arrays
+      if (!Array.isArray(analysis.pros)) {
+        analysis.pros = [analysis.pros];
+      }
+      if (!Array.isArray(analysis.cons)) {
+        analysis.cons = [analysis.cons];
+      }
+
+      return analysis;
+
+    } catch (error) {
+      console.error('[Amazon Smart Analyzer] Failed to parse response:', error);
+      throw new Error('Failed to parse analysis. Please try again.');
+    }
   }
 
   function displayResults(analysis) {
