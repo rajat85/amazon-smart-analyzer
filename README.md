@@ -51,7 +51,13 @@ An intelligent Chrome extension that provides AI-powered analysis of Amazon prod
 
 ## Usage
 
-**[📺 Watch Demo Video](https://www.youtube.com/watch?v=pYl1JyWr7dc)** - See the extension in action!
+### 📺 Demo Video
+
+[![Amazon Smart Analyzer Demo](https://img.youtube.com/vi/pYl1JyWr7dc/maxresdefault.jpg)](https://www.youtube.com/watch?v=pYl1JyWr7dc)
+
+**Click the thumbnail above to watch the extension in action!**
+
+### How to Use
 
 1. Navigate to any Amazon product page (e.g., amazon.com, amazon.co.uk, amazon.in)
 2. Look for the **"🔍 Analyze with AI"** button near the product price
